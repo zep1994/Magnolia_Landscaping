@@ -1,69 +1,57 @@
-import Image from "next/image";
+"use client";
 
+import { useState } from "react";
+
+const photos = {
+  hero: "https://images.unsplash.com/photo-1558904541-efa843a96f01?auto=format&fit=crop&w=2400&q=85",
+  garden: "https://images.unsplash.com/photo-1416879595882-3373a0480b5b?auto=format&fit=crop&w=1000&q=85",
+  lawn: "https://images.unsplash.com/photo-1558904541-efa843a96f01?auto=format&fit=crop&w=1200&q=85",
+  landscape: "https://images.unsplash.com/photo-1416331108676-a22ccb276e35?auto=format&fit=crop&w=1200&q=85",
+};
+const services = [
+  { number: "01", title: "Landscape design & installation", text: "Thoughtful planting, garden beds, and outdoor spaces that feel like a natural extension of your home.", tags: "DESIGN · PLANTING · TRANSFORMATION", image: photos.garden },
+  { number: "02", title: "Lawn care & maintenance", text: "From a freshly cut lawn to seasonal cleanups, dependable care that keeps your property looking its best.", tags: "MOWING · EDGING · SEASONAL CARE", image: photos.lawn },
+  { number: "03", title: "Commercial grounds care", text: "A welcoming first impression for your business, with a maintenance schedule built around your property.", tags: "BUSINESSES · COMMUNITIES · PROPERTIES", image: photos.landscape },
+];
+const projects = [
+  { title: "A greener welcome", type: "Residential", detail: "Lawn & garden inspiration", image: photos.lawn },
+  { title: "Room to unwind", type: "Garden design", detail: "Outdoor living inspiration", image: photos.hero },
+  { title: "Naturally inviting", type: "Commercial", detail: "Planting & grounds inspiration", image: photos.landscape },
+];
+function Arrow({ diagonal = false }) { return <span aria-hidden="true">{diagonal ? "↗" : "↗"}</span>; }
+function Flower() { return <svg viewBox="0 0 48 48" fill="none" aria-hidden="true"><path d="M24 25C10 20 10 5 24 3c14 2 14 17 0 22ZM24 25C28 9 43 10 45 22c-3 13-16 14-21 3ZM24 25C40 28 39 43 26 45c-13-3-14-16-2-20ZM24 25C20 41 5 40 3 27c3-13 16-14 21-2Z" stroke="currentColor" strokeWidth="1.6"/><circle cx="24" cy="24" r="4" fill="currentColor"/></svg>; }
 export default function Home() {
-  return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert h-5 w-[100px]"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the{" "}
-            <code className="rounded bg-black/[.06] px-1.5 py-0.5 font-mono text-[0.9em] dark:bg-white/[.08]">
-              page.js
-            </code>{" "}
-            file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
-        </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert h-[14px] w-4"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={14}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
-        </div>
-      </main>
-    </div>
-  );
+  const [menu, setMenu] = useState(false);
+  const [filter, setFilter] = useState("All projects");
+  const [service, setService] = useState("");
+  const [status, setStatus] = useState({ state: "idle", message: "" });
+  function selectService(value) { setService(value); setStatus({ state: "idle", message: "" }); }
+  async function submit(event) {
+    event.preventDefault();
+    setStatus({ state: "sending", message: "Sending your request…" });
+    const data = Object.fromEntries(new FormData(event.currentTarget));
+    try {
+      const response = await fetch("/api/contact", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(data) });
+      const result = await response.json().catch(() => ({ error: "The contact form is temporarily unavailable. Please try again later." }));
+      if (!response.ok) throw new Error(result.error || "We couldn't send your request. Please try again.");
+      setStatus({ state: "success", message: "Thank you! Your consultation request has been sent. We'll be in touch to discuss your space." });
+      event.target.reset(); setService("");
+    } catch (error) { setStatus({ state: "error", message: error.message === "Unexpected token '<', \"<!DOCTYPE \"... is not valid JSON" ? "The contact form will be available once Cloudflare email delivery is configured." : "Your request could not be sent. Please try again later. If this site was just launched, email delivery may still need to be configured." }); }
+  }
+  return <>
+    <div className="announcement">A little care. A lot of possibility. <span>Let’s grow something beautiful together.</span></div>
+    <header><a className="brand" href="#home" aria-label="Magnolia home"><Flower/><span>MAGNOLIA<small>LAWN & LANDSCAPE</small></span></a><nav className={menu ? "open" : ""} aria-label="Main navigation">{[["Our services", "services"], ["Our story", "about"], ["Our work", "projects"], ["Care plans", "plans"]].map(([label,id]) => <a key={id} href={`#${id}`} onClick={() => setMenu(false)}>{label}</a>)}<a className="button nav-cta" href="#contact" onClick={() => setMenu(false)}>Let’s talk <Arrow/></a></nav><button className="menu-toggle" onClick={() => setMenu(!menu)} aria-expanded={menu} aria-label="Toggle navigation">{menu ? "Close ✕" : "Menu ☰"}</button></header>
+    <main id="home">
+      <section className="hero" style={{ backgroundImage: `linear-gradient(90deg, rgba(13,35,24,.76), rgba(13,35,24,.12)), url(${photos.hero})` }}><div className="hero-content"><p className="eyebrow light"><span className="tiny-line"/> ROOTED IN CARE. GROWN WITH PURPOSE.</p><h1>Good things<br/>grow <em>here.</em></h1><p className="hero-copy">Beautiful landscapes. Healthy lawns. More moments outside.<br className="desktop-break"/> Thoughtful care for the place you call your own.</p><a className="button cream" href="#contact">Let’s bring your landscape to life <Arrow/></a></div><div className="hero-bottom"><span>YOUR OUTDOORS, REIMAGINED.</span><a href="#services">Explore what we do <span>↓</span></a></div><div className="hero-stamp"><Flower/><span>Thoughtfully planted.<br/>Beautifully maintained.</span></div></section>
+      <div className="values-strip"><span>Residential & commercial</span><i>✳</i><span>Care through every season</span><i>✳</i><span>Designed around you</span><i>✳</i><span>From the ground up</span></div>
+      <section id="services" className="section services"><div className="section-heading"><div><p className="eyebrow">A LITTLE VISION. A LOT OF CARE.</p><h2>Outside is where<br/>we do our <em>best work.</em></h2></div><p>From the first sketch to the final trim, we help you create an outdoor space you love—and keep it that way.</p></div><div className="service-grid">{services.map(item => <article className="service-card" key={item.number}><a href="#contact" onClick={() => selectService(item.title)} className="service-image"><img src={item.image} alt={item.title === services[0].title ? "Hands tending young plants in a garden" : item.title === services[1].title ? "Lush green lawn bordered by landscaped garden beds" : "Leafy landscaped outdoor space"} loading="lazy"/><span className="image-arrow"><Arrow/></span></a><p className="service-number">{item.number} <span>{item.tags}</span></p><h3><a href="#contact" onClick={() => selectService(item.title)}>{item.title}</a></h3><p>{item.text}</p></article>)}</div><div className="services-foot"><span>Need a seasonal refresh, new planting, or a complete fresh start?</span><a className="text-link" href="#contact">Find your perfect fit <Arrow/></a></div></section>
+      <section id="about" className="about section"><div className="about-photo"><img src={photos.lawn} alt="Manicured lawn and vibrant planting around a home" loading="lazy"/><div className="photo-note"><Flower/><span>Good roots.<br/><em>Great possibilities.</em></span></div></div><div className="about-copy"><p className="eyebrow">GET TO KNOW MAGNOLIA</p><h2>A love for the land.<br/>An eye for <em>the details.</em></h2><p>We believe the best landscapes do more than look beautiful. They give you a place to slow down, gather together, and enjoy everyday life.</p><p>Our approach is simple: listen to your ideas, understand your space, and build a practical plan for its care. Whether it’s a small backyard or a commercial property, every detail deserves attention.</p><div className="about-points"><span>✧ Thoughtful, personal service</span><span>✧ Plans tailored to your property</span><span>✧ Clear communication, every step</span></div><a className="text-link" href="#contact">Meet your landscape’s next chapter <Arrow/></a></div></section>
+      <section id="projects" className="section projects"><div className="section-heading"><div><p className="eyebrow">POSSIBILITIES, IN FULL BLOOM</p><h2>A little outdoor <em>inspiration.</em></h2></div><a className="text-link" href="#contact">Imagine your space <Arrow/></a></div><div className="filters" role="group" aria-label="Filter inspiration gallery">{["All projects", "Residential", "Garden design", "Commercial"].map(value => <button className={filter === value ? "active" : ""} aria-pressed={filter === value} key={value} onClick={() => setFilter(value)}>{value}</button>)}</div><div className="project-grid">{projects.filter(project => filter === "All projects" || project.type === filter).map(project => <a className="project" href="#contact" key={project.title} onClick={() => selectService(project.type === "Commercial" ? services[2].title : services[0].title)}><div><img src={project.image} alt={project.detail} loading="lazy"/><span className="project-tag">{project.type}</span></div><h3>{project.title}<Arrow/></h3><p>{project.detail}</p></a>)}</div><p className="gallery-note">A curated moodboard of stock photography. Your finished project could be next.</p></section>
+      <section id="plans" className="section plans"><div className="section-heading"><div><p className="eyebrow light">LESS ON YOUR LIST. MORE TO ENJOY.</p><h2>A beautiful yard.<br/><em>Without the weekend work.</em></h2></div><p>Make room for the moments that matter. Choose a care plan shaped around your landscape, your schedule, and the season.</p></div><div className="plan-grid">{[{title:"Essential care",subtitle:"The foundation for a fresh, tidy lawn.",items:["Routine mowing & edging","Walkway and driveway blow-off","A schedule that fits your property"]},{title:"Complete landscape",subtitle:"A little more attention, all around.",items:["Everything in Essential care","Garden bed & shrub maintenance","Seasonal cleanup planning"],featured:true},{title:"Commercial care",subtitle:"A polished welcome, every day.",items:["Property-specific grounds plan","Flexible service scheduling","Seasonal planting & upkeep"]}].map(plan => <article className={`plan ${plan.featured ? "featured" : ""}`} key={plan.title}>{plan.featured && <span className="plan-label">THE WHOLE PICTURE</span>}<h3>{plan.title}</h3><p>{plan.subtitle}</p><ul>{plan.items.map(item => <li key={item}>✓ {item}</li>)}</ul><a className="button" href="#contact" onClick={() => selectService(plan.title)}>Explore this plan <Arrow/></a><small>Custom quote based on your property.</small></article>)}</div></section>
+      <section className="section process"><p className="eyebrow">A SIMPLE PATH TO SOMETHING BEAUTIFUL</p><h2>From “what if” to <em>welcome home.</em></h2><div className="process-grid">{[["01","Let’s talk","Tell us about your space, your ideas, and what you’d love to change."],["02","Make a plan","We’ll discuss the right services, scope, and a clear quote for your property."],["03","Watch it grow","Enjoy your outdoor space with a plan for installation or ongoing care."]].map(([n,title,copy]) => <article key={n}><span>{n}</span><h3>{title}</h3><p>{copy}</p></article>)}</div></section>
+      <section className="section faq"><div><p className="eyebrow">A FEW GOOD QUESTIONS</p><h2>Let’s clear<br/>things <em>up.</em></h2></div><div className="questions">{[["Do you work with homes and businesses?","Yes. You can request residential landscape and lawn care or commercial grounds maintenance. We’ll tailor the scope to your property."],["How much will my landscaping cost?","Every property is different. Share your goals, property size, and the services you need, and we’ll discuss a custom quote before any work begins."],["Can I schedule recurring lawn care?","Yes. Essential and complete landscape care plans are designed for recurring service. Frequency and seasonal needs are discussed during your consultation."],["Do you serve my neighborhood?","Include your city and ZIP code in the consultation form so we can confirm service availability for your location."],["What happens after I submit a request?","Once email delivery is configured, your request is sent to the Magnolia team. We’ll follow up to discuss your property, timing, and next steps."]].map(([question,answer]) => <details key={question}><summary>{question}<span>+</span></summary><p>{answer}</p></details>)}</div></section>
+      <section id="contact" className="section contact"><div className="contact-copy"><p className="eyebrow">YOUR NEXT CHAPTER STARTS OUTSIDE</p><h2>Let’s grow<br/>something <em>beautiful.</em></h2><p>A fresh start for your lawn. A new vision for your garden. Tell us what you have in mind—we’d love to hear it.</p><div className="contact-note"><Flower/><p>Every great landscape<br/>starts with a conversation.</p></div><small>No obligation. Just ideas and a plan for what’s next.</small></div><form onSubmit={submit}><h3>Request a consultation</h3><p>Tell us a little about you and your outdoor space.</p><div className="form-grid"><label>Full name <input name="name" autoComplete="name" placeholder="Your name" required maxLength={100}/></label><label>Email address <input name="email" type="email" autoComplete="email" placeholder="you@example.com" required maxLength={200}/></label><label>Phone number <input name="phone" type="tel" autoComplete="tel" placeholder="Your phone number" required maxLength={40}/></label><label>City & ZIP code <input name="location" autoComplete="address-level2" placeholder="Where is your property?" required maxLength={150}/></label></div><label>How can we help? <select name="service" required value={service} onChange={event => setService(event.target.value)}><option value="">Select a service</option>{[...services.map(item => item.title), "Essential care", "Complete landscape", "Commercial care", "Seasonal cleanup", "Not sure yet"].map(value => <option key={value}>{value}</option>)}</select></label><label>Tell us about your project <textarea name="message" placeholder="Your ideas, property details, and ideal timing…" rows={4} required maxLength={5000}/></label><label className="honeypot" aria-hidden="true">Leave this empty<input name="website" tabIndex={-1} autoComplete="off"/></label><label className="consent"><input type="checkbox" required/> I agree to be contacted about my request. My information won’t be sold.</label><button className="button" type="submit" disabled={status.state === "sending"}>{status.state === "sending" ? "Sending…" : "Send consultation request"}<Arrow/></button><p className={`form-status ${status.state}`} role="status" aria-live="polite">{status.message}</p></form></section>
+    </main><footer><div className="footer-top"><a className="brand" href="#home"><Flower/><span>MAGNOLIA<small>LAWN & LANDSCAPE</small></span></a><p>Good things grow here.</p><a href="#contact" className="text-link">Let’s talk <Arrow/></a></div><div className="footer-bottom"><span>© {new Date().getFullYear()} Magnolia Lawn & Landscape</span><div><a href="#services">Services</a><a href="#projects">Our work</a><a href="#contact">Contact</a><a href="/privacy/">Privacy policy</a></div><a href="#home">Back to top ↑</a></div></footer>
+  </>;
 }
+
