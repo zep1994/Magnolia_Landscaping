@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 const source = await readFile(new URL('../functions/api/contact.js', import.meta.url), 'utf8');
 const { onRequestPost } = await import(`data:text/javascript;base64,${Buffer.from(source).toString('base64')}`);
-const data = { name: 'Test Visitor', email: 'visitor@example.com', phone: '5551234567', location: 'Test City 12345', service: 'Home maintenance', message: 'Please discuss weekly care.', website: '' };
+const data = { name: 'Test Visitor', email: 'visitor@example.com', phone: '5551234567', location: 'Test City 12345', service: 'Essential care', message: 'Please discuss weekly care.', website: '' };
 const env = { RESEND_API_KEY: 'test', CONTACT_FROM_EMAIL: 'hello@example.com', CONTACT_TO_EMAIL: 'team@example.com' };
 const request = (body, origin = 'https://example.com') => new Request('https://example.com/api/contact', { method: 'POST', headers: { 'Content-Type': 'application/json', Origin: origin }, body: JSON.stringify(body) });
 assert.equal((await onRequestPost({ request: request(data), env: {} })).status, 503);
@@ -20,7 +20,6 @@ globalThis.fetch = async () => new Response('{}', { status: 500 });
 assert.equal((await onRequestPost({ request: request(data), env })).status, 502);
 globalThis.fetch = originalFetch;
 const html = await readFile(new URL('../out/index.html', import.meta.url), 'utf8');
-for (const section of ['home', 'services', 'about', 'projects', 'process', 'contact']) assert.ok(html.includes(`id="${section}"`), `Missing ${section}`);
+for (const section of ['home', 'services', 'about', 'projects', 'plans', 'contact']) assert.ok(html.includes(`id="${section}"`), `Missing ${section}`);
 assert.ok(html.includes('/privacy/'));
 console.log('Passed: form delivery, missing configuration, invalid input, origin check, honeypot, provider failure, and exported navigation targets.');
-

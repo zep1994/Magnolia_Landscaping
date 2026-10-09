@@ -14,9 +14,6 @@ export async function onRequestPost({ request, env }) {
   if (data.website) return json({ ok: true });
   const fields = ['name', 'email', 'phone', 'location', 'service', 'message'];
   const limits = [100, 200, 40, 150, 150, 5000];
-  for (const field of ['date', 'size']) {
-    if (data[field] !== undefined && (typeof data[field] !== 'string' || data[field].length > 100)) return json({ error: 'Invalid project preferences.' }, 400);
-  }
   if (fields.some((field, i) => typeof data[field] !== 'string' || !data[field].trim() || data[field].length > limits[i])) return json({ error: 'Please complete all fields with valid information.' }, 400);
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(data.email)) return json({ error: 'Please enter a valid email address.' }, 400);
   if (!env.RESEND_API_KEY || !env.CONTACT_TO_EMAIL || !env.CONTACT_FROM_EMAIL) return json({ error: 'Email delivery is not yet configured. Please try again later.' }, 503);
@@ -24,11 +21,10 @@ export async function onRequestPost({ request, env }) {
     const response = await fetch('https://api.resend.com/emails', {
       method: 'POST',
       headers: { Authorization: `Bearer ${env.RESEND_API_KEY}`, 'Content-Type': 'application/json' },
-      body: JSON.stringify({ from: env.CONTACT_FROM_EMAIL, to: [env.CONTACT_TO_EMAIL], reply_to: data.email.trim(), subject: `Red Clay estimate: ${data.service.replace(/[\r\n]/g, ' ')}`, text: [...fields, ...['date', 'size'].filter(field => data[field])].map(field => `${field.toUpperCase()}:\n${data[field].trim()}`).join('\n\n') }),
+      body: JSON.stringify({ from: env.CONTACT_FROM_EMAIL, to: [env.CONTACT_TO_EMAIL], reply_to: data.email.trim(), subject: `Magnolia consultation: ${data.service.replace(/[\r\n]/g, ' ')}`, text: fields.map(field => `${field.toUpperCase()}:\n${data[field].trim()}`).join('\n\n') }),
     });
     if (!response.ok) return json({ error: 'Your request could not be delivered. Please try again later.' }, 502);
     return json({ ok: true });
   } catch { return json({ error: 'Your request could not be delivered. Please try again later.' }, 502); }
 }
 export function onRequestGet() { return new Response('Method not allowed', { status: 405, headers: { Allow: 'POST' } }); }
-
