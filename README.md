@@ -1,31 +1,38 @@
-# Magnolia Lawn & Landscape
+# Red Clay Home Services
 
-Responsive Next.js marketing site with a static export and a Cloudflare Pages Function for consultation email.
+A responsive handyman website with services, project inspiration filters, FAQs, a two-step estimate flow, and mobile click-to-call.
 
-## Local preview
+## Demo behavior
 
-Run `npm install`, then `npm run dev`. The Next.js preview serves the website. The `/api/contact` handler runs on Cloudflare Pages, not the Next.js development server.
+The owner requested fictional contact details. The phone number `(202) 555-0148` is a reserved fictional number. Clicking it opens the device dialer; there is no live business line.
 
-## Cloudflare Pages deployment
+Booking is explicitly a demo: required fields are validated, and submission displays a sample confirmation/reference. No email is sent, no appointment is booked, and form data remains only in page memory. It clears when the page reloads. Use sample details.
 
-Connect this repository to Cloudflare Pages. Choose no framework preset (or Next.js Static HTML Export), use `npm run build` as the build command, and `out` as the output directory. The root `functions` directory must remain in the repository; Cloudflare deploys it alongside the static export. Use Node.js 22 or later.
+Gallery images are labeled stock inspiration from Unsplash. There are no fabricated reviews, customer projects, license claims, or business statistics.
 
-For command-line deployment with Wrangler: `npx wrangler pages deploy out --project-name YOUR_PROJECT_NAME` from the repository root after building. A dashboard drag-and-drop of `out` alone does not deploy Pages Functions; use the Git integration or Wrangler for the working form.
+## Development
 
-### Enable consultation email
+Run `npm install`, then `npm run dev`. Run `npm run build` to export the site to `out`.
 
-Configure these environment variables in Cloudflare Pages settings for production (and preview if desired), then redeploy:
+## Cloudflare Pages
 
-- `RESEND_API_KEY`: secret API key from your Resend account.
-- `CONTACT_FROM_EMAIL`: a sender on a verified Resend domain, e.g. `Magnolia <consultations@yourdomain.com>`.
-- `CONTACT_TO_EMAIL`: the business inbox that should receive consultation requests.
+Create a **Pages** project connected to your GitHub repository. Use these settings:
 
-The form validates required fields, checks the origin, includes a honeypot, and reports success only after the email provider accepts delivery. Missing configuration produces an honest error. Enable Cloudflare rate limiting for `/api/contact` before a public launch if needed.
+- Production branch: `main`
+- Framework preset: `None`
+- Build command: `npm run build`
+- Build output directory: `out`
+- Root directory: blank
+- Environment variable: `NODE_VERSION=22`
 
-For a full local form preview, build the project and run `npx wrangler pages dev out` from the repository root with these variables in a local `.dev.vars` file (never commit it).
+`out` is a directory, not a deploy command. If the dashboard asks for a deploy command, you are in the Workers setup; return and choose Pages.
 
-## Business content before launch
+Keep the root `functions` directory in your repository for future live email delivery. Deploy through Git or `npx wrangler pages deploy out --project-name YOUR_PROJECT_NAME` from the root to include Pages Functions.
 
-The gallery uses clearly labeled stock inspiration photos from Unsplash. Replace these with real project images and update the captions when available. Add the real service area, business phone, email, and any verified credentials before public launch. No fabricated testimonials, ratings, license claims, or business history are included.
+## Moving to a real business
 
-Privacy policy is at `/privacy/`. Adjust retention and contact details to match actual business practices.
+Replace the phone in `src/app/page.js`, supply a real service area, add authentic project photos, and update the privacy policy. No real credentials are required for the current demo.
+
+A reusable email endpoint is supplied at `functions/api/contact.js`. To enable real delivery, configure `RESEND_API_KEY` (secret), `CONTACT_FROM_EMAIL` (sender on a verified Resend domain), and `CONTACT_TO_EMAIL` (recipient) in Cloudflare Pages, then redeploy. The current form intentionally does not call that endpoint. Replace its simulated submit handler with a POST to `/api/contact` when ready to accept real requests, and show success only after a successful response. Optional date and project-size fields are supported by the endpoint.
+
+Run `node scripts/verify-contact.mjs` after building for endpoint and export checks.
